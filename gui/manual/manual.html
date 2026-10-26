@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Manual — TermoLab2D</title>
+<style>
+body { font-family: "DejaVu Sans", "Segoe UI", Arial, sans-serif; font-size: 10.5pt; color: #212529; background-color: #ffffff; margin: 12px 18px; line-height: 140%; }
+h1 { color: #1c3d5a; font-size: 20pt; margin-bottom: 2px; }
+h2 { color: #1c3d5a; font-size: 15pt; margin-top: 26px; border-bottom: 2px solid #1c3d5a; padding-bottom: 3px; }
+h3 { color: #1864ab; font-size: 12.5pt; margin-top: 18px; }
+h4 { color: #343a40; font-size: 11pt; margin-top: 10px; margin-bottom: 4px; }
+table { border-collapse: collapse; margin: 6px 0 10px 0; }
+th { background-color: #e7f0f8; color: #1c3d5a; text-align: left; }
+td, th { vertical-align: top; padding: 4px 7px; }
+code { font-family: "DejaVu Sans Mono", Consolas, monospace; background-color: #f1f3f5; }
+pre { font-family: "DejaVu Sans Mono", Consolas, monospace; background-color: #f1f3f5; padding: 8px; }
+.sub { color: #495057; font-size: 11pt; margin-top: 0; }
+.nota { background-color: #fff4e6; border-left: 4px solid #f08c00; padding: 6px 10px; }
+.dica { background-color: #ebfbee; border-left: 4px solid #2f9e44; padding: 6px 10px; }
+.atividade { background-color: #f3f0ff; border-left: 4px solid #7048e8; padding: 6px 10px; }
+.toc a { text-decoration: none; }
+.voltar { font-size: 9pt; }
+</style>
+</head>
+<body>
+
+<a name="topo"></a>
+<h1>TermoLab2D</h1>
+<p class="sub">Termodinâmica partícula a partícula — manual de uso</p>
+
+<p>O TermoLab2D simula, partícula por partícula, um gás em duas dimensões e mostra ao vivo
+as grandezas da termodinâmica e da teoria cinética: temperatura, pressão, entropia, calor,
+trabalho, distribuição de velocidades. A simulação roda em C++ (com OpenMP); a interface,
+em Python. Cada <b>caso</b> prepara um experimento clássico (expansão livre, efusão,
+teorema H, mistura, condução de calor, compressão por pistão…) com parâmetros que o
+usuário pode alterar.</p>
+
+<h3>Conteúdo</h3>
+<table class="toc" cellpadding="2">
+<tr><td>1.</td><td><a href="#instalacao">Instalação e execução</a></td>
+    <td>&nbsp;&nbsp;8.</td><td><a href="#casos">Os casos, um a um</a></td></tr>
+<tr><td>2.</td><td><a href="#janela">A janela</a></td>
+    <td>&nbsp;&nbsp;9.</td><td><a href="#salvar">Salvar e exportar resultados</a></td></tr>
+<tr><td>3.</td><td><a href="#primeira">Primeira simulação, passo a passo</a></td>
+    <td>&nbsp;&nbsp;10.</td><td><a href="#modelo">O modelo físico e as unidades</a></td></tr>
+<tr><td>4.</td><td><a href="#parametros">Parâmetros</a></td>
+    <td>&nbsp;&nbsp;11.</td><td><a href="#desempenho">Desempenho e precisão</a></td></tr>
+<tr><td>5.</td><td><a href="#interacoes">Interações entre partículas</a></td>
+    <td>&nbsp;&nbsp;12.</td><td><a href="#problemas">Problemas comuns</a></td></tr>
+<tr><td>6.</td><td><a href="#graficos">Gráficos disponíveis</a></td>
+    <td>&nbsp;&nbsp;13.</td><td><a href="#professor">Para o professor: novos casos</a></td></tr>
+<tr><td>7.</td><td><a href="#controle">Controle da execução</a></td>
+    <td>&nbsp;&nbsp;14.</td><td><a href="#atalhos">Atalhos de teclado</a></td></tr>
+</table>
+
+<!-- ===================================================================== -->
+<a name="instalacao"></a>
+<h2>1. Instalação e execução</h2>
+
+<h4>O que é preciso</h4>
+<ul>
+<li>Python 3.10 ou mais recente, com <code>numpy</code>, <code>matplotlib</code>, <code>PySide6</code> e <code>pyqtgraph</code>;</li>
+<li>um compilador C++17 com OpenMP (<code>g++</code>) — ou um executável do simulador já compilado.</li>
+</ul>
+
+<h4>Linux: pacote .deb (Debian, Ubuntu, Mint e derivados)</h4>
+<pre>sudo apt install ./termolab2d_1.0-1_amd64.deb</pre>
+<p>O <code>apt</code> instala junto as poucas bibliotecas gráficas do sistema de que o programa
+precisa. O TermoLab2D aparece no menu de aplicativos (categoria Educação/Ciência), com o manual
+em PDF como ação do ícone; no terminal, o comando é <code>termolab2d</code>. O pacote é
+autocontido — traz seu próprio Python, PySide6, numpy e pyqtgraph em <code>/opt/termolab2d</code>
+— e não interfere no Python do sistema. Para remover: <code>sudo apt remove termolab2d</code>.</p>
+<p>Requisitos: 64 bits, glibc 2.28 ou mais recente (Debian 11+, Ubuntu 20.04+, Mint 20+).
+Cerca de 215 MB em disco.</p>
+
+<h4>Linux: a partir do código</h4>
+<p>Em distribuições recentes (Ubuntu, Debian, Mint), o <code>pip</code> não instala pacotes no Python
+do sistema. Use um ambiente virtual que aproveite os pacotes já instalados:</p>
+<pre>cd "pasta/do/TermoLab2D"
+python3 -m venv .venv --system-site-packages
+.venv/bin/pip install -r requirements.txt
+.venv/bin/python interface.py</pre>
+<p>O compilador vem do pacote <code>g++</code> (<code>sudo apt install g++</code>). Na primeira
+execução — e sempre que o código C++ for alterado — a interface compila o simulador sozinha.
+Também é possível compilar à mão com <code>make</code>.</p>
+
+<h4>Windows: instalador</h4>
+<p>Execute <code>TermoLab2D-1.0-instalador.exe</code>. Ele instala tudo o que é necessário — inclusive
+o Python e o simulador já compilado — só para o seu usuário, sem pedir senha de administrador, em
+<code>%LOCALAPPDATA%\Programs\TermoLab2D</code>. O programa aparece no menu Iniciar (com o manual em
+PDF e o desinstalador) e, se você quiser, na área de trabalho. Para remover: menu Iniciar →
+<i>Desinstalar o TermoLab2D</i>, ou Configurações → Aplicativos.</p>
+<p>Requisitos: Windows 10 (versão 1903 ou mais recente) ou Windows 11, 64 bits. Cerca de 115 MB em disco.</p>
+<div class="nota">O instalador não tem assinatura digital; por isso o Windows pode mostrar o aviso
+“O Windows protegeu o computador”. Clique em <b>Mais informações</b> → <b>Executar assim mesmo</b>.</div>
+
+<h4>Windows: a partir do código</h4>
+<pre>py -m pip install -r requirements.txt
+py interface.py</pre>
+<p>Sem compilador instalado, coloque um <code>simulator.exe</code> pré-compilado em
+<code>bin\windows\</code>. Com o MinGW-w64 instalado, a interface compila o simulador sozinha.</p>
+
+<div class="nota"><b>Onde a interface procura o simulador:</b> variável de ambiente
+<code>TERMOLAB2D_SIMULATOR</code> → <code>build/simulator</code> (compilando se as fontes forem mais novas)
+→ <code>bin/&lt;linux|windows&gt;/</code>.</div>
+
+<!-- ===================================================================== -->
+<a name="janela"></a>
+<h2>2. A janela</h2>
+<p><img src="img/visao_geral.png" width="900"></p>
+<table border="1" cellspacing="0" cellpadding="5">
+<tr><th>#</th><th>Região</th><th>Função</th></tr>
+<tr><td>1</td><td>Lista de casos</td><td>Escolha o experimento. Os casos estão agrupados por tema.</td></tr>
+<tr><td>2</td><td>Descrição</td><td>O que o caso faz e o que observar. Role o texto até o fim; o link <i>Mais detalhes no manual</i> abre a seção do caso.</td></tr>
+<tr><td>3</td><td>Parâmetros</td><td>Geometria e condição inicial do caso; propriedades do gás. Os campos mudam com o caso e com a interação escolhida.</td></tr>
+<tr><td>4</td><td>Partículas</td><td>A caixa, os sólidos (cinza), as paredes térmicas (vermelho = quente, azul = fria) e o pistão. Use a roda do mouse para ampliar e arraste para deslocar.</td></tr>
+<tr><td>5</td><td>Gráficos</td><td>As grandezas escolhidas em “Visualizar”, atualizadas ao vivo. Linhas tracejadas são valores teóricos de referência.</td></tr>
+<tr><td>6</td><td>Barra de status</td><td>Tempo, passo, temperatura, energia por partícula e progresso; ao final, um resumo (conservação de energia ou primeira lei).</td></tr>
+<tr><td>7</td><td>Menus</td><td><b>Arquivo</b>: salvar imagens, exportar dados e a configuração. <b>Ajuda</b>: este manual e informações sobre o modelo.
+O botão <b>Manual</b>, ao lado de “1. Escolha o caso”, e a tecla F1 abrem este manual na seção do caso selecionado.</td></tr>
+</table>
+
+<p>A coluna da esquerda rola. Na parte de baixo ficam:</p>
+<p><img src="img/painel_inferior.png" width="330"></p>
+<table border="1" cellspacing="0" cellpadding="5">
+<tr><th>#</th><th>Item</th><th>Função</th></tr>
+<tr><td>8</td><td>Avançado</td><td>Clique para abrir: passo de tempo, equilibração, cortes, massa, semente, threads.</td></tr>
+<tr><td>9</td><td>Visualizar</td><td>Marque os gráficos que quer ver. Pode marcar e desmarcar durante a simulação — os dados de todos são calculados sempre.</td></tr>
+<tr><td>10</td><td>Cor, velocidade, tamanho</td><td><b>Cor das partículas</b>: pela velocidade, pelo lado em que começaram, ou pela espécie (A/B).<br>
+<b>Velocidade de exibição</b>: quantos quadros por segundo são mostrados; “Máxima” roda o mais rápido possível.<br>
+<b>Tamanho dos pontos</b>: só o desenho; não muda a física.</td></tr>
+<tr><td>11</td><td>Gravação de resultados</td><td>Grava a trajetória (JSONL) e/ou quadros VTK para o ParaView numa pasta.</td></tr>
+<tr><td>12</td><td>Botões</td><td><b>Iniciar</b>, <b>Pausar/Continuar</b>, <b>Parar</b> e <b>Padrões</b> (restaura os valores padrão do caso).</td></tr>
+</table>
+
+<!-- ===================================================================== -->
+<a name="primeira"></a>
+<h2>3. Primeira simulação, passo a passo</h2>
+<ol>
+<li>Na lista de casos, clique em <b>Expansão livre (Joule)</b>.</li>
+<li>Leia a descrição: o gás começa equilibrado na metade esquerda da caixa e, em <i>t</i> = 0, a parede é retirada.</li>
+<li>Deixe os parâmetros como estão (1 500 partículas, interação WCA, temperatura 1).</li>
+<li>Em <b>Velocidade de exibição</b>, escolha “Tempo real” para acompanhar o movimento.</li>
+<li>Clique em <b>Iniciar</b>. Durante alguns segundos a barra mostra “Equilibrando o gás…”; depois as partículas começam a ocupar a metade direita.</li>
+<li>Observe: a <b>entropia configuracional</b> sobe até perto de ln 2 ≈ 0,693 (linha tracejada); a fração de partículas na direita vai a ½; a <b>temperatura</b> fica praticamente constante.</li>
+<li>Agora troque a <b>Interação</b> para <i>Lennard-Jones</i> e rode de novo: o gás esfria. Depois, <i>Coulomb</i>: o gás esquenta. Por quê? Veja a <a href="#caso-expansion">seção do caso</a>.</li>
+<li>Para guardar o resultado: <b>Arquivo → Salvar imagem da janela</b> ou <b>Exportar séries temporais (CSV)</b>.</li>
+</ol>
+
+<!-- ===================================================================== -->
+<a name="parametros"></a>
+<h2>4. Parâmetros</h2>
+<p>Todos os valores estão em <a href="#modelo">unidades reduzidas</a> (massa, constante de Boltzmann e
+diâmetro típico da ordem de 1). Passe o mouse sobre um campo para ver uma explicação curta.</p>
+
+<h3>Parâmetros do gás (comuns a todos os casos)</h3>
+<table border="1" cellspacing="0" cellpadding="5">
+<tr><th>Campo</th><th>Padrão</th><th>Significado e dicas</th></tr>
+<tr><td>Número de partículas</td><td>1 500</td><td>Mais partículas = flutuações menores (∝ 1/√N) e simulação mais lenta. Entre 200 e 3 000 é confortável.</td></tr>
+<tr><td>Temperatura inicial</td><td>1</td><td>Temperatura em <i>t</i> = 0. Depois disso não há termostato: a temperatura muda só pela física do caso.</td></tr>
+<tr><td>Interação</td><td>WCA</td><td>Força entre as partículas: WCA, Lennard-Jones, Coulomb ou nenhuma. Ver <a href="#interacoes">seção 5</a>.</td></tr>
+<tr><td>Diâmetro σ</td><td>0,2</td><td>(WCA e LJ) Tamanho efetivo das partículas. Aumentar σ deixa o gás mais denso e menos ideal, e encurta o livre caminho médio.</td></tr>
+<tr><td>Energia ε</td><td>1</td><td>(WCA e LJ) Intensidade da interação; no Lennard-Jones, profundidade do poço atrativo.</td></tr>
+<tr><td>Carga</td><td>1</td><td>(Coulomb) Carga igual para todas as partículas — só repulsão.</td></tr>
+<tr><td>Tempo de simulação</td><td>depende do caso</td><td>Tempo físico a partir de <i>t</i> = 0. O número de passos é tempo/<i>dt</i>.</td></tr>
+</table>
+
+<h3>Parâmetros avançados</h3>
+<table border="1" cellspacing="0" cellpadding="5">
+<tr><th>Campo</th><th>Padrão</th><th>Significado e dicas</th></tr>
+<tr><td>Tempo de equilibração inicial</td><td>5</td><td>Antes de <i>t</i> = 0, o gás é equilibrado na região inicial com paredes temporárias e temperatura fixa. Elimina o transiente do sorteio das posições. Zero desliga.</td></tr>
+<tr><td>Passo de tempo <i>dt</i></td><td>0,001</td><td>Menor = mais preciso e mais lento. Verifique pela energia total (deve ficar constante em sistemas isolados). Com σ pequeno ou temperaturas altas, reduza.</td></tr>
+<tr><td>Passos entre quadros</td><td>depende do caso</td><td>De quantos em quantos passos um quadro vai para a interface. Afeta a resolução temporal dos gráficos, não a física.</td></tr>
+<tr><td>Corte do Lennard-Jones</td><td>2,5 σ</td><td>Distância além da qual a força LJ é desprezada.</td></tr>
+<tr><td>Raio de corte (Coulomb)</td><td>3</td><td>Distância além da qual a força coulombiana é desprezada.</td></tr>
+<tr><td>Suavização (Coulomb)</td><td>0,05</td><td>Evita a divergência de 1/<i>r</i> em encontros muito próximos.</td></tr>
+<tr><td>Massa</td><td>1</td><td>Massa das partículas (espécie A).</td></tr>
+<tr><td>Semente aleatória</td><td>42</td><td>Mesma semente + mesmos parâmetros = mesma simulação. Troque para obter outra realização estatística.</td></tr>
+<tr><td>Threads OpenMP</td><td>0</td><td>Núcleos usados pelo simulador; 0 usa todos.</td></tr>
+</table>
+
+<p>Cada caso tem ainda seus parâmetros próprios (tamanho da caixa, altura do canal,
+temperatura das paredes, velocidade do pistão…), descritos na <a href="#casos">seção 8</a>.</p>
+
+<!-- ===================================================================== -->
+<a name="interacoes"></a>
+<h2>5. Interações entre partículas</h2>
+<table border="1" cellspacing="0" cellpadding="5">
+<tr><th>Interação</th><th>Potencial</th><th>Comportamento</th><th>Use para</th></tr>
+<tr><td><b>Discos macios (WCA)</b></td><td>4ε[(σ/r)¹² − (σ/r)⁶] + ε,<br>para r &lt; 2<sup>1/6</sup>σ</td>
+<td>Só repulsão, de curto alcance: as partículas colidem como discos de diâmetro ≈ σ.</td>
+<td>Gás quase ideal com colisões. É o padrão.</td></tr>
+<tr><td><b>Lennard-Jones</b></td><td>4ε[(σ/r)¹² − (σ/r)⁶],<br>cortado em 2,5σ</td>
+<td>Repulsão de curto alcance + atração.</td>
+<td>Gás real: esfria na expansão livre; <i>Z</i> &lt; 1.</td></tr>
+<tr><td><b>Coulomb</b></td><td><i>q</i>²/<i>r</i>, com corte e suavização</td>
+<td>Repulsão de longo alcance; cada partícula sente dezenas de vizinhas.</td>
+<td>Contraste: gás fortemente repulsivo, que esquenta ao expandir.</td></tr>
+<tr><td><b>Sem interação</b></td><td>zero</td>
+<td>As partículas só colidem com as paredes.</td>
+<td>Gás ideal exato; mostra o papel das colisões (sem elas não há relaxação).</td></tr>
+</table>
+<div class="dica">Com WCA e Lennard-Jones, as partículas são colocadas inicialmente a pelo menos
+2<sup>1/6</sup>σ umas das outras, evitando sobreposições.</div>
+
+<!-- ===================================================================== -->
+<a name="graficos"></a>
+<h2>6. Gráficos disponíveis</h2>
+<p>Marque-os em <b>Visualizar</b>. Séries temporais mostram a história desde <i>t</i> = 0;
+distribuições e perfis mostram o instante atual. Linhas tracejadas cinzentas são referências teóricas.</p>
+<table border="1" cellspacing="0" cellpadding="5">
+<tr><th>Gráfico</th><th>O que mostra</th></tr>
+<tr><td>Temperatura</td><td><i>T</i> = <i>K</i>/(<i>N k</i>), com dois graus de liberdade por partícula.</td></tr>
+<tr><td>Temperatura em cada metade</td><td><i>T</i> das partículas à esquerda e à direita do centro da caixa (descontado o fluxo médio).</td></tr>
+<tr><td>Energia por partícula</td><td>Cinética, potencial e total. Em sistemas isolados a total é constante — bom teste para <i>dt</i>.</td></tr>
+<tr><td>Variação de entropia por partícula</td><td>Δ<i>S</i>/(<i>Nk</i>) configuracional (posições), de velocidades e total, em relação a <i>t</i> = 0. Ver <a href="#entropia">como é calculada</a>.</td></tr>
+<tr><td>Fração na metade direita</td><td><i>N</i><sub>dir</sub>/<i>N</i>.</td></tr>
+<tr><td>Distribuição de velocidades</td><td>Histograma de |<b>v</b>| comparado com Maxwell–Boltzmann 2D na temperatura atual e na inicial.</td></tr>
+<tr><td>Perfil de densidade</td><td><i>n</i>(<i>x</i>)/<i>n̄</i> em faixas verticais: valor instantâneo (barras) e média recente (linha).</td></tr>
+<tr><td>Perfil de temperatura</td><td><i>T</i>(<i>x</i>) em faixas verticais: instantâneo e média recente.</td></tr>
+<tr><td>Pressão</td><td>Pressão medida nas paredes (média móvel e média acumulada) comparada com <i>NkT</i>/<i>A</i>.</td></tr>
+<tr><td>Fator de compressibilidade</td><td><i>Z</i> = ⟨<i>P</i>⟩<i>A</i>/(<i>N k</i>⟨<i>T</i>⟩); <i>Z</i> = 1 no gás ideal.</td></tr>
+<tr><td>Primeira lei</td><td>Δ<i>E</i>, calor <i>Q</i> recebido das paredes térmicas, trabalho <i>W</i> do pistão e <i>Q</i> + <i>W</i>, por partícula.</td></tr>
+<tr><td>Calor de cada parede</td><td>Energia acumulada que cada parede térmica entregou ao gás (negativa = retirou).</td></tr>
+<tr><td>Função H de Boltzmann</td><td><i>H</i> = ∫ <i>f</i> ln <i>f</i> d²<i>v</i> e seu valor de equilíbrio.</td></tr>
+<tr><td>Entropia de mistura</td><td>Entropia configuracional distinguindo as espécies e sem distinguir, e o valor ideal −Σ <i>x</i>ᵢ ln <i>x</i>ᵢ.</td></tr>
+<tr><td>Espécies do outro lado</td><td>Fração de A na metade direita e de B na metade esquerda.</td></tr>
+<tr><td>Temperatura na compressão</td><td><i>T</i> comparada com a adiabática ideal (<i>T A</i> = cte) e a isotérmica.</td></tr>
+<tr><td>Diagrama P × A</td><td>Caminho no plano pressão × área, com a adiabática (<i>P A</i>² = cte) e a isotérmica (<i>P A</i> = cte) ideais.</td></tr>
+</table>
+<p>Os gráficos podem ser ampliados com a roda do mouse e deslocados arrastando; clique com o botão
+direito para opções (inclusive “View All” para voltar à escala automática e “Export…” para
+salvar um gráfico isolado).</p>
+
+<!-- ===================================================================== -->
+<a name="controle"></a>
+<h2>7. Controle da execução</h2>
+<ul>
+<li><b>Iniciar</b> gera a configuração, executa o simulador C++ e começa a desenhar.
+Enquanto a simulação roda, os parâmetros ficam bloqueados.</li>
+<li><b>Pausar</b> suspende de fato o simulador (ele espera a interface); <b>Continuar</b> retoma.
+Durante a pausa é possível ampliar gráficos, trocar a cor das partículas e marcar outros gráficos.</li>
+<li><b>Parar</b> encerra a simulação; os gráficos ficam como estão e podem ser exportados.</li>
+<li>Trocar de caso durante uma simulação a interrompe.</li>
+<li><b>Padrões</b> restaura os valores padrão do caso atual.</li>
+</ul>
+
+<!-- ===================================================================== -->
+<a name="casos"></a>
+<h2>8. Os casos, um a um</h2>
+<p>Em cada caso: objetivo, parâmetros próprios, o que observar e atividades sugeridas para aula.</p>
+
+<!-- ------------------------------------------------------------------ -->
+<a name="caso-expansion"></a>
+<h3>8.1 Expansão livre (Joule)</h3>
+<p><b>Objetivo.</b> Mostrar o aumento de entropia num processo irreversível e o efeito das
+interações na temperatura de um gás real.</p>
+<p><b>Montagem.</b> O gás é equilibrado numa faixa à esquerda (fração <i>f</i> da largura),
+atrás de uma parede temporária, retirada em <i>t</i> = 0. O gás se expande para o vácuo sem
+realizar trabalho e sem trocar calor: a energia interna se conserva.</p>
+<p><b>Parâmetros próprios.</b> Largura e altura da caixa (40 × 20); fração inicialmente ocupada <i>f</i> (0,5).</p>
+<p><b>O que observar.</b></p>
+<ul>
+<li>Δ<i>S</i><sub>conf</sub>/<i>Nk</i> → ln(1/<i>f</i>) (ln 2 ≈ 0,693 para <i>f</i> = ½).</li>
+<li>A temperatura depende da interação: <b>WCA/sem interação</b> — constante (gás ideal);
+<b>Lennard-Jones</b> — cai (≈ 1,00 → 0,92 em <i>t</i> = 20, com os valores padrão);
+<b>Coulomb</b> — sobe muito (≈ 1 → 6,7). É o sinal de (∂<i>T</i>/∂<i>V</i>)<sub><i>U</i></sub> = −(1/<i>C<sub>V</sub></i>)[<i>T</i>(∂<i>P</i>/∂<i>T</i>)<sub><i>V</i></sub> − <i>P</i>].</li>
+<li>Logo após a retirada da parede, a metade direita recebe primeiro as partículas mais rápidas (fica “quente”) e a esquerda esfria; depois as duas se igualam.</li>
+</ul>
+<div class="atividade"><b>Atividades.</b>
+(1) Compare as quatro interações e explique o sinal da variação de temperatura.
+(2) Use <i>f</i> = 0,25 e verifique Δ<i>S</i> → ln 4 ≈ 1,39.
+(3) Com 100 e com 3 000 partículas, compare as flutuações de <i>N</i><sub>dir</sub>/<i>N</i> no fim: por que o processo inverso nunca é observado com muitas partículas?</div>
+
+<!-- ------------------------------------------------------------------ -->
+<a name="caso-channel"></a>
+<h3>8.2 Efusão através de um canal</h3>
+<p><b>Objetivo.</b> Relaxação ao equilíbrio entre dois reservatórios; separação entre
+equilíbrio mecânico (pressão) e térmico (temperatura).</p>
+<p><b>Montagem.</b> Uma parede central com um canal divide a caixa em duas câmaras; o gás começa todo na esquerda.</p>
+<p><b>Parâmetros próprios.</b> Largura e altura da caixa (40 × 20); altura do canal (6); espessura da parede (2).</p>
+<p><b>O que observar.</b></p>
+<ul>
+<li>Duas escalas de tempo. Primeiro a <b>pressão</b> se iguala: o gás da esquerda se expande e
+esfria (≈ 0,7); a câmara direita esquenta (≈ 2) com o jato que entra. Como <i>n k T</i> fica igual
+dos dois lados, a câmara quente tem menos partículas e <i>N</i><sub>dir</sub>/<i>N</i> estaciona
+perto de 0,3.</li>
+<li>Depois, devagar, o calor atravessa o canal, as temperaturas se aproximam e <i>N</i><sub>dir</sub>/<i>N</i> → ½.</li>
+<li>Sem interação: efusão de Knudsen — as partículas rápidas passam primeiro.</li>
+</ul>
+<div class="atividade"><b>Atividades.</b>
+(1) Meça o tempo para <i>N</i><sub>dir</sub>/<i>N</i> chegar a 0,25 com canais de altura 2, 4 e 8. Como ele depende da abertura?
+(2) Compare WCA com “sem interação”.
+(3) Aumente o tempo de simulação para 500 e acompanhe o equilíbrio térmico.</div>
+
+<!-- ------------------------------------------------------------------ -->
+<a name="caso-h_theorem"></a>
+<h3>8.3 Relaxação para Maxwell (teorema H)</h3>
+<p><b>Objetivo.</b> Ver a distribuição de Maxwell–Boltzmann surgir das colisões e a função
+<i>H</i> de Boltzmann decrescer.</p>
+<p><b>Montagem.</b> As posições são equilibradas; em <i>t</i> = 0 todas as partículas recebem o
+mesmo |<b>v</b>| = √(2<i>kT</i>/<i>m</i>), em direções aleatórias.</p>
+<p><b>Parâmetros próprios.</b> Largura e altura da caixa (40 × 20).</p>
+<p><b>O que observar.</b> O pico do histograma se alarga até a curva de Maxwell–Boltzmann em
+poucas unidades de tempo; <i>H</i> cai até o equilíbrio e não volta a subir; a temperatura (energia)
+não muda.</p>
+<div class="atividade"><b>Atividades.</b>
+(1) Use “sem interação”: a distribuição não relaxa. O que isso diz sobre a origem da irreversibilidade?
+(2) Reduza σ para 0,1 ou dobre a área da caixa: o tempo de relaxação muda como o livre caminho médio
+λ ≈ 1/(√2 <i>n</i> σ)?
+(3) Por que, com poucas partículas (100), <i>H</i> flutua em vez de decrescer suavemente?</div>
+
+<!-- ------------------------------------------------------------------ -->
+<a name="caso-mixing"></a>
+<h3>8.4 Mistura de dois gases</h3>
+<p><b>Objetivo.</b> Entropia de mistura e paradoxo de Gibbs.</p>
+<p><b>Montagem.</b> Espécie A (azul) equilibrada na metade esquerda, espécie B (laranja) na direita;
+a divisória é retirada em <i>t</i> = 0.</p>
+<p><b>Parâmetros próprios.</b> Caixa 20 × 20; partículas de cada espécie (400); “espécies idênticas”;
+razão de massas <i>m</i><sub>B</sub>/<i>m</i><sub>A</sub>; razão de diâmetros σ<sub>B</sub>/σ<sub>A</sub>.</p>
+<p><b>O que observar.</b> A entropia que distingue as espécies cresce até ln 2 por partícula; a
+que só olha para as posições não muda, porque a densidade já era uniforme. A mistura é difusiva:
+o tempo cresce com o quadrado do tamanho da caixa.</p>
+<div class="atividade"><b>Atividades.</b>
+(1) Marque “espécies idênticas”: a dinâmica é a de um único gás, mas a entropia “com cores” ainda
+cresce ln 2. Discuta o paradoxo de Gibbs.
+(2) Use razão de massas 4: qual espécie atravessa mais depressa? Compare com <i>D</i> ∝ √(<i>kT</i>/<i>m</i>).
+(3) Dobre o tamanho da caixa e compare o tempo de mistura.</div>
+
+<!-- ------------------------------------------------------------------ -->
+<a name="caso-equilibrium"></a>
+<h3>8.5 Gás em equilíbrio</h3>
+<p><b>Objetivo.</b> Distribuição de Maxwell–Boltzmann, flutuações e conservação de energia.</p>
+<p><b>Parâmetros próprios.</b> Caixa 20 × 16; tamanho do obstáculo central (fração de cada lado; 0 = sem obstáculo).</p>
+<p><b>O que observar.</b> O histograma de |<b>v</b>| coincide com <i>f</i>(<i>v</i>) = (<i>v</i>/σ²)
+exp(−<i>v</i>²/2σ²), σ² = <i>kT</i>/<i>m</i>; a temperatura flutua em torno de um valor constante;
+a energia total se conserva.</p>
+<div class="atividade"><b>Atividades.</b>
+(1) Compare as flutuações de <i>T</i> com 100, 400 e 1 600 partículas: dividem-se por 2 a cada fator 4?
+(2) Aumente <i>dt</i> para 0,005 e 0,01 e observe a energia total: qual é o maior <i>dt</i> aceitável?</div>
+
+<!-- ------------------------------------------------------------------ -->
+<a name="caso-ideal_gas"></a>
+<h3>8.6 Lei dos gases ideais</h3>
+<p><b>Objetivo.</b> Medir a pressão mecanicamente e verificar <i>P A</i> = <i>N k T</i> (em 2D, a
+“área” faz o papel do volume); desvios do gás ideal.</p>
+<p><b>Montagem.</b> Caixa simples; a pressão é o impulso transferido às paredes por unidade de comprimento e de tempo.</p>
+<p><b>Parâmetros próprios.</b> Caixa 20 × 20 (padrão: 2 000 partículas, σ = 0,1).</p>
+<p><b>O que observar.</b> A pressão instantânea flutua muito; a média acumulada converge.
+Valores de <i>Z</i> obtidos com 2 000 partículas na caixa padrão e <i>T</i> = 1:</p>
+<table border="1" cellspacing="0" cellpadding="4">
+<tr><th>Interação</th><th>σ</th><th><i>Z</i></th></tr>
+<tr><td>sem interação</td><td>—</td><td>1,00</td></tr>
+<tr><td>WCA</td><td>0,1</td><td>≈ 1,09</td></tr>
+<tr><td>WCA</td><td>0,2</td><td>≈ 1,42</td></tr>
+<tr><td>WCA</td><td>0,3</td><td>≈ 2,43</td></tr>
+<tr><td>Lennard-Jones</td><td>0,2</td><td>≈ 0,93 (<i>T</i> = 1); ≈ 0,61 (<i>T</i> = 0,6)</td></tr>
+</table>
+<div class="atividade"><b>Atividades.</b>
+(1) Varie <i>N</i>, <i>T</i> e o tamanho da caixa, anote ⟨<i>P</i>⟩ e faça o gráfico de <i>P</i> contra <i>NkT</i>/<i>A</i>.
+(2) Com WCA, explique <i>Z</i> &gt; 1 pela área excluída (segundo coeficiente do virial
+<i>B</i><sub>2</sub> ≈ π<i>d</i>²/2).
+(3) Com Lennard-Jones, por que <i>Z</i> &lt; 1 e por que o desvio aumenta quando <i>T</i> diminui?</div>
+
+<!-- ------------------------------------------------------------------ -->
+<a name="caso-conduction"></a>
+<h3>8.7 Condução de calor entre paredes</h3>
+<p><b>Objetivo.</b> Transporte de calor, estado estacionário e lei de Fourier.</p>
+<p><b>Montagem.</b> Parede esquerda quente, direita fria (paredes térmicas); paredes de cima e de baixo isolantes.</p>
+<p><b>Parâmetros próprios.</b> Caixa 40 × 20; temperatura da parede esquerda (2) e da direita (0,5).</p>
+<p><b>O que observar.</b> O perfil <i>T</i>(<i>x</i>) evolui até um gradiente estacionário, com
+“saltos” de temperatura junto às paredes. No estacionário as curvas de calor das duas paredes ficam
+paralelas e opostas: a inclinação é o fluxo de calor <i>J</i>. A densidade é maior do lado frio.</p>
+<div class="atividade"><b>Atividades.</b>
+(1) Estime a condutividade: κ ≈ <i>J</i>/(<i>L<sub>y</sub></i> |d<i>T</i>/d<i>x</i>|), onde <i>J</i> (energia por tempo) é
+<i>N</i> vezes a inclinação da curva de calor acumulado no estacionário e d<i>T</i>/d<i>x</i> vem da parte central do perfil.
+(2) Compare com “sem interação” (regime balístico): o perfil fica plano no meio?
+(3) Dobre a diferença de temperatura: o fluxo dobra?</div>
+
+<!-- ------------------------------------------------------------------ -->
+<a name="caso-heating"></a>
+<h3>8.8 Aquecimento de um gás pelas paredes</h3>
+<p><b>Objetivo.</b> Relaxação térmica e a primeira lei sem trabalho (Δ<i>E</i> = <i>Q</i>).</p>
+<p><b>Parâmetros próprios.</b> Caixa 40 × 20; temperatura das quatro paredes (2). Padrão: gás a <i>T</i> = 0,3.</p>
+<p><b>O que observar.</b> <i>T</i> se aproxima da temperatura das paredes aproximadamente de forma
+exponencial; o gás esquenta primeiro junto às paredes; Δ<i>E</i> = <i>Q</i> o tempo todo.</p>
+<div class="atividade"><b>Atividades.</b>
+(1) Ajuste <i>T</i>(<i>t</i>) = <i>T</i><sub>p</sub> − (<i>T</i><sub>p</sub> − <i>T</i><sub>0</sub>) e<sup>−<i>t</i>/τ</sup> aos dados exportados em CSV.
+(2) Como τ muda com o tamanho da caixa? E com σ?
+(3) Comece com o gás mais quente que as paredes (<i>T</i> = 4).</div>
+
+<!-- ------------------------------------------------------------------ -->
+<a name="caso-piston"></a>
+<h3>8.9 Compressão por pistão</h3>
+<p><b>Objetivo.</b> Trabalho, processos adiabáticos e isotérmicos, reversíveis e irreversíveis.</p>
+<p><b>Montagem.</b> A parede direita é um pistão que, a partir de <i>t</i> = 2, se move com velocidade
+constante da posição inicial à final (frações da largura). A colisão com o pistão é elástica no
+referencial do pistão.</p>
+<p><b>Parâmetros próprios.</b> Caixa 40 × 20; posição inicial (1,0) e final (0,5) do pistão; velocidade
+(0,1); paredes fixas isolantes (adiabática) ou térmicas à temperatura inicial (isotérmica). Padrão: σ = 0,1.</p>
+<p><b>O que observar.</b></p>
+<ul>
+<li><b>Adiabática lenta</b>: segue <i>T A</i> = cte e <i>P A</i>² = cte (γ = 2 para gás monoatômico em 2D).
+Reduzindo a área à metade, <i>T</i> ≈ 2,1 (ideal: 2,0).</li>
+<li><b>Adiabática rápida</b> (velocidade ≥ 1): o gás esquenta mais que a adiabática — processo irreversível, trabalho maior.</li>
+<li><b>Isotérmica lenta</b>: <i>T</i> quase constante; o calor sai pelas paredes (<i>Q</i> &lt; 0);
+para o gás ideal, <i>W</i>/<i>N</i> = <i>kT</i> ln(<i>A</i>₀/<i>A</i>) = ln 2 ≈ 0,69 (a simulação dá um
+pouco mais, ≈ 0,78, porque o gás não é perfeitamente ideal nem perfeitamente isotérmico).</li>
+<li>Posição final maior que a inicial: expansão, o gás esfria.</li>
+<li>Em todos os casos, Δ<i>E</i> = <i>Q</i> + <i>W</i>.</li>
+</ul>
+<div class="nota">O tempo de simulação é estendido automaticamente até o pistão parar (mais 5 unidades).
+Com o pistão rápido, <i>dt</i> é reduzido automaticamente. A compressão lenta (0,1) leva cerca de 200
+unidades de tempo.</div>
+<div class="atividade"><b>Atividades.</b>
+(1) Compare velocidades 0,05, 0,2 e 1: em qual o caminho no diagrama P × A fica mais longe da adiabática?
+(2) Compare adiabática e isotérmica com a mesma velocidade; calcule o trabalho em cada uma.
+(3) Comprima e depois expanda (dois experimentos: 1,0 → 0,5 e 0,5 → 1,0): o gás volta à temperatura inicial?</div>
+
+<!-- ------------------------------------------------------------------ -->
+<a name="caso-custom"></a>
+<h3>8.10 Personalizado (geometria VTK)</h3>
+<p>Use qualquer máscara VTK 2D (legacy ASCII, <code>STRUCTURED_POINTS</code>, 0 = sólido, ≠ 0 = livre)
+e escolha a faixa da caixa ocupada em <i>t</i> = 0. Útil para meios porosos, obstáculos e canais.
+O script <code>create_geometry.py</code> gera caixas simples; a formatação está no README.</p>
+
+<p class="voltar"><a href="#topo">↑ voltar ao início</a></p>
+
+<!-- ===================================================================== -->
+<a name="salvar"></a>
+<h2>9. Salvar e exportar resultados</h2>
+<table border="1" cellspacing="0" cellpadding="5">
+<tr><th>Onde</th><th>O que faz</th></tr>
+<tr><td>Arquivo → Salvar imagem das partículas (Ctrl+S)</td><td>PNG da caixa com as partículas.</td></tr>
+<tr><td>Arquivo → Salvar imagem da janela</td><td>PNG da janela inteira, com os gráficos.</td></tr>
+<tr><td>Arquivo → Exportar séries temporais (CSV)</td><td>Todas as séries temporais calculadas (uma coluna por curva, primeira coluna = tempo), para planilhas, Python, Origin…</td></tr>
+<tr><td>Arquivo → Salvar configuração do caso (.cfg)</td><td>O arquivo de parâmetros e a geometria do caso atual, para rodar o simulador fora da interface:
+<code>python3 visualize.py caso.cfg</code> ou <code>build/simulator caso.cfg &gt; saida.jsonl</code>.</td></tr>
+<tr><td>Gravação de resultados → trajetória (JSONL)</td><td>Todos os quadros (posições e velocidades) em texto, uma linha por quadro.</td></tr>
+<tr><td>Gravação de resultados → VTK (ParaView)</td><td>Uma série de arquivos VTK; abra <code>particles.vtk.series</code> no ParaView.</td></tr>
+<tr><td>Botão direito sobre um gráfico → Export…</td><td>Salva um gráfico isolado (PNG, SVG ou os dados em CSV).</td></tr>
+</table>
+<p>A gravação cria uma subpasta com o nome do caso e a data dentro da pasta escolhida
+(padrão: <code>TermoLab2D_resultados</code> na pasta pessoal), com uma cópia da configuração usada.</p>
+
+<!-- ===================================================================== -->
+<a name="modelo"></a>
+<h2>10. O modelo físico e as unidades</h2>
+<h4>Dinâmica</h4>
+<p>Partículas em 2D, integradas por <i>velocity Verlet</i>. Paredes e sólidos refletem
+especularmente; paredes térmicas devolvem a partícula com velocidade sorteada na temperatura da
+parede (componente normal com a distribuição do fluxo, tangencial gaussiana). O pistão é uma parede
+móvel; a colisão é elástica no seu referencial (<i>v<sub>x</sub></i>' = 2<i>u</i> − <i>v<sub>x</sub></i>).
+Depois de <i>t</i> = 0 não há termostato.</p>
+
+<h4>Unidades reduzidas</h4>
+<p>Massa <i>m</i> = 1, constante de Boltzmann <i>k</i> = 1, energia ε = 1; comprimentos em unidades da
+caixa (σ = 0,2 por padrão). Com comprimento medido na unidade <i>L</i>, o tempo fica em unidades de
+<i>L</i>√(<i>m</i>/ε).
+“Temperatura 1” não é 1 kelvin: para um gás de argônio (ε/<i>k</i> ≈ 120 K), <i>T</i> = 1 com ε = 1
+corresponde a cerca de 120 K.</p>
+
+<h4>Grandezas</h4>
+<ul>
+<li><b>Temperatura</b>: <i>T</i> = <i>K</i>/(<i>N k</i>), com dois graus de liberdade por partícula (<i>K</i> = Σ ½<i>mv</i>²).</li>
+<li><b>Pressão</b>: impulso transferido às superfícies sólidas (e ao pistão) por unidade de comprimento e de tempo, médio entre dois quadros.</li>
+<li><b>Gás ideal em 2D</b>: <i>P A</i> = <i>N k T</i>; adiabática: <i>T A</i> = cte, <i>P A</i>² = cte (γ = 2).</li>
+<li><b>Maxwell–Boltzmann 2D</b>: <i>f</i>(<i>v</i>) = (<i>v</i>/σ²) exp(−<i>v</i>²/2σ²), σ² = <i>kT</i>/<i>m</i>; ⟨<i>v</i>⟩ = σ√(π/2).</li>
+</ul>
+<a name="entropia"></a>
+<h4>Entropia e função H</h4>
+<p>A entropia é a estimativa de Boltzmann em grade grossa, mostrada como variação em relação a <i>t</i> = 0:</p>
+<pre>S_conf/(N k) = −Σ p_i ln(p_i / A_i)       (posições; células com cerca de 20 partículas)
+S_vel/(N k)  = −∫ f(v) ln f(v) d²v        (histograma 2D das velocidades)
+H            = ∫ f ln f d²v = −S_vel/(N k)</pre>
+<p>Ambas usam a correção de Miller–Madow para o viés de amostras finitas. Para um gás uniforme,
+<i>S</i><sub>conf</sub> → ln <i>A</i>; para Maxwell–Boltzmann, <i>S</i><sub>vel</sub> = 1 + ln(2π<i>kT</i>/<i>m</i>).
+São estimativas: com poucas partículas elas flutuam e ficam ligeiramente abaixo do valor exato.</p>
+
+<h4>Limitações</h4>
+<ul>
+<li>As partículas são pontuais para as paredes (o diâmetro σ só vale entre partículas).</li>
+<li>O potencial de Coulomb usa 1/<i>r</i> (como em 3D) restrito ao plano, com corte; não é a eletrostática logarítmica de um mundo 2D.</li>
+<li>Os sólidos não blindam a interação: partículas interagem através de paredes finas se estiverem dentro do raio de corte.</li>
+</ul>
+
+<!-- ===================================================================== -->
+<a name="desempenho"></a>
+<h2>11. Desempenho e precisão</h2>
+<ul>
+<li>Use <b>Velocidade de exibição → Máxima</b> para simulações longas; “Tempo real” limita o simulador ao ritmo da tela.</li>
+<li>WCA e Lennard-Jones são rápidos; Coulomb é várias vezes mais lento (muitas vizinhas por partícula).</li>
+<li>O custo cresce aproximadamente com <i>N</i>; dobrar <i>N</i> dobra o tempo.</li>
+<li>Para resultados quantitativos, confira a energia total num caso isolado e reduza <i>dt</i> se ela variar mais que ~10⁻³.</li>
+<li>Para médias melhores, rode várias vezes com sementes diferentes em vez de uma única simulação enorme.</li>
+</ul>
+
+<!-- ===================================================================== -->
+<a name="problemas"></a>
+<h2>12. Problemas comuns</h2>
+<table border="1" cellspacing="0" cellpadding="5">
+<tr><th>Mensagem ou sintoma</th><th>O que fazer</th></tr>
+<tr><td>“O Windows protegeu o computador” ao instalar</td><td>O instalador não é assinado digitalmente. Clique em <b>Mais informações</b> → <b>Executar assim mesmo</b>.</td></tr>
+<tr><td>Uma janela “TermoLab2D — erro”</td><td>O texto completo do erro fica em <code>%LOCALAPPDATA%\TermoLab2D\erro.log</code> (Windows) ou <code>~/.local/state/TermoLab2D/erro.log</code> (Linux); envie esse arquivo a quem mantém o programa.</td></tr>
+<tr><td><i>externally-managed-environment</i> ao instalar com pip</td><td>Use o ambiente virtual da <a href="#instalacao">seção 1</a>.</td></tr>
+<tr><td><i>Simulador não encontrado</i> / falha ao compilar</td><td>Instale <code>g++</code> (Linux) ou MinGW-w64 (Windows), ou coloque o executável em <code>bin/&lt;sistema&gt;/</code>.</td></tr>
+<tr><td><i>Falha na trajetória/colisão: reduza dt</i></td><td>Duas partículas se aproximaram demais num passo. Reduza <i>dt</i> (Avançado), a temperatura ou a velocidade do pistão.</td></tr>
+<tr><td><i>Densidade alta demais para a distância mínima inicial</i></td><td>Há partículas demais para a área inicial com o σ escolhido. Reduza <i>N</i> ou σ, ou aumente a região inicial.</td></tr>
+<tr><td>A simulação demora muito</td><td>Velocidade de exibição “Máxima”; menos partículas; mais passos entre quadros; tempo de simulação menor.</td></tr>
+<tr><td>A energia total varia num caso isolado</td><td>Reduza <i>dt</i>. Em casos com paredes térmicas ou pistão a energia <b>deve</b> variar — confira a primeira lei.</td></tr>
+<tr><td>Gráfico vazio ou com escala estranha</td><td>Botão direito → “View All”. Alguns gráficos só fazem sentido em certos casos (por exemplo, o diagrama P × A no pistão).</td></tr>
+<tr><td>A entropia não chega exatamente ao valor teórico</td><td>É uma estimativa estatística; aumente <i>N</i> ou espere mais tempo. Com Lennard-Jones, as correlações entre partículas reduzem a entropia configuracional.</td></tr>
+</table>
+
+<!-- ===================================================================== -->
+<a name="professor"></a>
+<h2>13. Para o professor: novos casos e grandezas</h2>
+<ul>
+<li><b>Novo caso</b>: em <code>gui/scenarios.py</code>, crie um <code>Scenario</code> com os parâmetros próprios
+(<code>Param</code>), a função <code>build</code> que gera a geometria e as chaves do <code>.cfg</code>, e,
+se quiser, valores teóricos em <code>references</code>. Acrescente-o a <code>SCENARIOS</code>; o formulário é
+montado sozinho. A descrição em HTML aparece no painel do caso; acrescente também uma seção a este manual
+(<code>gui/manual/manual.html</code>) com a âncora <code>caso-&lt;id&gt;</code>.</li>
+<li><b>Nova grandeza</b>: em <code>gui/observables.py</code>, crie uma subclasse de <code>Observable</code>
+(série temporal, distribuição ou perfil) e acrescente-a a <code>OBSERVABLES</code>.</li>
+<li><b>Novas chaves do simulador</b> (paredes, pistão, espécies…): ver o README.</li>
+</ul>
+
+<!-- ===================================================================== -->
+<a name="atalhos"></a>
+<h2>14. Atalhos de teclado</h2>
+<table border="1" cellspacing="0" cellpadding="5">
+<tr><th>Tecla</th><th>Ação</th></tr>
+<tr><td>F1</td><td>Abre este manual na seção do caso selecionado</td></tr>
+<tr><td>Ctrl+S</td><td>Salvar imagem das partículas</td></tr>
+<tr><td>Ctrl+Q</td><td>Sair</td></tr>
+<tr><td>Roda do mouse / arrastar</td><td>Ampliar / deslocar a caixa ou um gráfico</td></tr>
+</table>
+
+<p class="voltar"><a href="#topo">↑ voltar ao início</a></p>
+</body>
+</html>

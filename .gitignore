@@ -1,0 +1,24 @@
+# Compilação
+build/
+bin/
+__pycache__/
+*.pyc
+.venv/
+
+# Instaladores gerados (publicados em Releases pelo GitHub Actions)
+instalador/
+packaging/windows/_cache/
+packaging/windows/_stage/
+packaging/linux/_cache/
+packaging/linux/_stage/
+
+# Resultados de simulações
+*.jsonl
+resultados*/
+TermoLab2D_resultados/
+examples/paraview_preview/
+Claude outputs/
+
+# Sistema
+.DS_Store
+Thumbs.db

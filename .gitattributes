@@ -1,0 +1,6 @@
+# Finais de linha consistentes entre Linux e Windows
+* text=auto eol=lf
+*.png binary
+*.ico binary
+*.pdf binary
+*.vtk text eol=lf
